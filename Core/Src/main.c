@@ -70,7 +70,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 /**
- *  HAL_UART_RxCpltCallback it's job is to return information
+ *  @brief HAL_UART_RxCpltCallback it's job is to return information
  *  if data sent via UART is incorrect,
  *  or to set received data as TempRef if data is correct.
  *
@@ -100,7 +100,7 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 
 /**
  *
- * Control_Algorithm is a main function in our program,
+ * @brief Control_Algorithm is a main function in our program,
  * its job is to measure difference between TempRef and temp,
  * then react with heater(if difference is positive and bigger than 1 degree),
  * or with fan(if difference is negative and less than -0.8).
@@ -305,19 +305,18 @@ int main(void)
      /** Getting the compensated temperature as floating point value */
      rslt = bmp280_get_comp_temp_double(&temp, ucomp_data.uncomp_temp, &bmp);
      /**Transmitting the temperature via UART*/
-     size = sprintf(buffer,"Temperatura %f\n\r ", temp);
+     size = sprintf(buffer,"Temperature %f\n\r ", temp);
      HAL_UART_Transmit(&huart3, (uint8_t*)buffer, size, 200);
 
      /** Sleep time between measurements = BMP280_ODR_2000_MS */
      bmp.delay_ms(2000);
 
-     HAL_GPIO_WritePin(Heater_GPIO_Port, Heater_Pin, heater_state);  // Wysterowywanie Pinu grzałki
-     HAL_GPIO_WritePin(Fan_GPIO_Port, Fan_Pin, fan_state);			 // Wysterowanie Pinu wentylatora
+     HAL_GPIO_WritePin(Heater_GPIO_Port, Heater_Pin, heater_state);  // Heater control
+     HAL_GPIO_WritePin(Fan_GPIO_Port, Fan_Pin, fan_state);			 // Fan control
 
      /**Receiving Referenced temperature*/
-
      HAL_UART_Receive_IT(&huart3, Received, 4);
-     Control_Algorithm(TempRef, temp);								// Wywołąnie funckji algorytmu sterowania
+     Control_Algorithm(TempRef, temp);								// Control algorithm function callback
 
      HAL_Delay(100);
 
