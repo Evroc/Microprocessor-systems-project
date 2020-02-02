@@ -69,7 +69,14 @@ double TempRecived;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-/**Do opisania, odbirór z terminala plus kontrola*/
+/**
+ *  HAL_UART_RxCpltCallback it's job is to return information
+ *  if data sent via UART is incorrect,
+ *  or to set received data as TempRef if data is correct.
+ *
+ * @param huart it's a UART3 handler
+ *
+ */
 
 void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 {
@@ -91,10 +98,20 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 
 }
 
-/** Do opisania, algorytm sterowania*/
+/**
+ *
+ * Control_Algorithm is a main function in our program,
+ * its job is to measure difference between TempRef and temp,
+ * then react with heater(if difference is positive and bigger than 1 degree),
+ * or with fan(if difference is negative and less than -0.8).
+ *
+ * @param TempRef is our set temperature received from a user via UART
+ * @param temp is our current temperature
+ *
+ */
 void Control_Algorithm (double TempRef, double temp)
 {
-	 TempDif=TempRef-temp;  //obliczanie różnicy temepratury zadanej i mierzonej
+	 TempDif=TempRef-temp;
 
 	 if (TempDif > 1)
 	 {
@@ -114,6 +131,20 @@ void Control_Algorithm (double TempRef, double temp)
 
 }
 
+//Functions bellow are provided by the manufacturer of the sensor
+
+/*!
+ * @brief Function for writing the sensor 's registers through SPI bus.
+ *
+ * @param [in] cs : Chip select to enable the sensor .
+ * @param [in] reg_addr : Register address .
+ * @param [in] reg_data : Pointer to the data buffer whose data has to be written .
+ * @param [in] length : No of bytes to write .
+ *
+ * @return Status of execution
+ * @retval 0 -> Success
+ * @retval >0 -> Failure Info
+ */
 int8_t spi_reg_write(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint16_t length)
 {
 
@@ -140,7 +171,18 @@ int8_t spi_reg_write(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint16_t l
 	}
 	return ( int8_t ) iError ;
 }
-
+/*!
+ * @brief Function for reading the sensor 's registers through SPI bus.
+ *
+ * @param [in] cs : Chip select to enable the sensor .
+ * @param [in] reg_addr : Register address .
+ * @param [ out] reg_data : Pointer to the data buffer to store the read data .
+ * @param [in] length : No of bytes to read .
+ *
+ * @return Status of execution
+ * @retval 0 -> Success
+ * @retval >0 -> Failure Info
+ */
 int8_t spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint16_t length)
 {
 
