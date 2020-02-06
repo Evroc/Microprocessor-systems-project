@@ -62,6 +62,9 @@ double TempDif=0;
 static unsigned short heater_state = 0;
 static unsigned short fan_state = 0;
 double TempRecived;
+float TempSVW=0;
+float TempRefSVW=0;
+
 
 /* USER CODE END PV */
 
@@ -81,12 +84,12 @@ void SystemClock_Config(void);
 void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 {
 	TempRecived=atof(&Received);
-	if (TempRecived < 20.0)
+	if (TempRecived < 21.0)
 	{
 		error = sprintf(buffer,"Nieprawidlowa wartosc zadana\n\r ");
 		HAL_UART_Transmit(&huart3, (uint8_t*)buffer, error, 200);
 	}
-	else if (TempRecived > 40.0)
+	else if (TempRecived > 30.0)
 	{
 		error = sprintf(buffer,"Nieprawidlowa wartosc zadana\n\r ");
 		HAL_UART_Transmit(&huart3, (uint8_t*)buffer, error, 200);
@@ -113,17 +116,17 @@ void Control_Algorithm (double TempRef, double temp)
 {
 	 TempDif=TempRef-temp;
 
-	 if (TempDif > 1)
+	 if (TempDif > 0.15)
 	 {
 		 heater_state = 1;
 		 fan_state = 0;
 	 }
-	 else if (TempDif < -0.8)
+	 else if (TempDif < -0.15)
 	 {
 			 heater_state = 0;
 			 fan_state = 1;
 	 }
-	 else if (TempDif < -0.2)
+	 else
 	 {
 		 heater_state = 0;
 		 fan_state = 0;
@@ -309,7 +312,7 @@ int main(void)
      HAL_UART_Transmit(&huart3, (uint8_t*)buffer, size, 200);
 
      /** Sleep time between measurements = BMP280_ODR_2000_MS */
-     bmp.delay_ms(2000);
+     bmp.delay_ms(100);
 
      HAL_GPIO_WritePin(Heater_GPIO_Port, Heater_Pin, heater_state);  // Heater control
      HAL_GPIO_WritePin(Fan_GPIO_Port, Fan_Pin, fan_state);			 // Fan control
@@ -318,7 +321,12 @@ int main(void)
      HAL_UART_Receive_IT(&huart3, Received, 4);
      Control_Algorithm(TempRef, temp);								// Control algorithm function callback
 
-     HAL_Delay(100);
+     HAL_Delay(200);
+
+
+     //konwersja na float
+     TempSVW= (float)temp;
+     TempRefSVW=(float)TempRef;
 
     /* USER CODE END WHILE */
 
